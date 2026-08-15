@@ -6,7 +6,7 @@ export type ProjectFormField =
   | "technologies"
   | "github_url"
   | "live_url"
-  | "thumbnail_url"
+  | "thumbnail_image"
   | "status"
   | "featured"
   | "display_order";

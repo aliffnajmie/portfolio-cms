@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { projectFormData, projectIdSchema, projectSchema } from "@/lib/project-schema";
+import { deleteManagedProjectImage, uploadProjectImage, validateProjectImage } from "@/lib/supabase/project-images";
 import { createClient } from "@/lib/supabase/server";
 import type { DeleteProjectState, ProjectFormState } from "@/types/project-form";
 
@@ -27,7 +28,10 @@ export async function updateProject(
     return { errors: projectResult.error.flatten().fieldErrors, formError: null };
   }
 
-  const { data: existingProject, error: existingProjectError } = await supabase.from("projects").select("slug").eq("id", idResult.data).maybeSingle();
+  const image = validateProjectImage(formData.get("thumbnail_image"));
+  if (image.error) return { errors: { thumbnail_image: [image.error] }, formError: null };
+
+  const { data: existingProject, error: existingProjectError } = await supabase.from("projects").select("slug, thumbnail_url").eq("id", idResult.data).maybeSingle();
   if (existingProjectError || !existingProject) {
     console.error("Failed to load project before update", {
       code: existingProjectError?.code ?? "NO_MATCHING_ROW",
@@ -38,12 +42,28 @@ export async function updateProject(
     return { errors: {}, formError: "The project couldn't be updated. Please try again." };
   }
 
+  const upload = image.file
+    ? await uploadProjectImage(supabase, image.file, image.extension)
+    : { path: null, publicUrl: null, error: null };
+  if (upload.error || (image.file && !upload.publicUrl)) {
+    console.error("Failed to upload replacement project thumbnail", { message: upload.error?.message, projectId: idResult.data, userId: user.id });
+    return { errors: { thumbnail_image: ["The image couldn't be uploaded. Please try again."] }, formError: null };
+  }
+  const removeThumbnail = formData.get("remove_thumbnail") === "on";
+  const thumbnailUrl = upload.publicUrl ?? (removeThumbnail ? null : existingProject.thumbnail_url);
+
+  async function cleanUpNewUpload() {
+    if (!upload.publicUrl) return;
+    const cleanup = await deleteManagedProjectImage(supabase, upload.publicUrl);
+    if (cleanup.error) console.error("Failed to clean up replacement thumbnail", { message: cleanup.error.message, projectId: idResult.data, userId: user.id });
+  }
+
   const updatePayload = {
     title: projectResult.data.title,
     slug: projectResult.data.slug,
     summary: projectResult.data.summary,
     content: projectResult.data.content,
-    thumbnail_url: projectResult.data.thumbnail_url,
+    thumbnail_url: thumbnailUrl,
     technologies: projectResult.data.technologies,
     github_url: projectResult.data.github_url,
     live_url: projectResult.data.live_url,
@@ -54,6 +74,7 @@ export async function updateProject(
 
   const { data, error } = await supabase.from("projects").update(updatePayload).eq("id", idResult.data).select("id, title, slug, summary, content, thumbnail_url, technologies, github_url, live_url, status, featured, display_order").maybeSingle();
   if (error || !data) {
+    await cleanUpNewUpload();
     console.error("Failed to update admin project", {
       code: error?.code ?? "NO_MATCHING_ROW",
       message: error?.message ?? "No project was returned after update",
@@ -77,12 +98,18 @@ export async function updateProject(
   });
 
   if (mismatchedFields.length > 0) {
+    await cleanUpNewUpload();
     console.error("Project update did not persist all submitted fields", {
       projectId: idResult.data,
       userId: user.id,
       mismatchedFields,
     });
     return { errors: {}, formError: "The project couldn't be updated. Please try again." };
+  }
+
+  if (existingProject.thumbnail_url && existingProject.thumbnail_url !== thumbnailUrl && (upload.publicUrl || removeThumbnail)) {
+    const cleanup = await deleteManagedProjectImage(supabase, existingProject.thumbnail_url);
+    if (cleanup.error) console.error("Failed to remove previous project thumbnail", { message: cleanup.error.message, projectId: idResult.data, userId: user.id });
   }
 
   revalidatePath("/admin/projects", "layout");
@@ -105,7 +132,7 @@ export async function deleteProject(
   const idResult = projectIdSchema.safeParse(projectId);
   if (!idResult.success) return { error: "This project could not be deleted." };
 
-  const { data, error } = await supabase.from("projects").delete().eq("id", idResult.data).select("id, slug").maybeSingle();
+  const { data, error } = await supabase.from("projects").delete().eq("id", idResult.data).select("id, slug, thumbnail_url").maybeSingle();
   if (error || !data) {
     console.error("Failed to delete admin project", {
       code: error?.code ?? "NO_MATCHING_ROW",
@@ -115,6 +142,9 @@ export async function deleteProject(
     });
     return { error: "The project couldn't be deleted. Please try again." };
   }
+
+  const cleanup = await deleteManagedProjectImage(supabase, data.thumbnail_url);
+  if (cleanup.error) console.error("Failed to remove thumbnail after project deletion", { message: cleanup.error.message, projectId: idResult.data, userId: user.id });
 
   revalidatePath("/admin/projects", "layout");
   revalidatePath(`/admin/projects/${idResult.data}/edit`);

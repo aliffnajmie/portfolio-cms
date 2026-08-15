@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { projectFormData, projectSchema } from "@/lib/project-schema";
+import { deleteManagedProjectImage, uploadProjectImage, validateProjectImage } from "@/lib/supabase/project-images";
 import { createClient } from "@/lib/supabase/server";
 import type { ProjectFormState } from "@/types/project-form";
 
@@ -20,8 +21,23 @@ export async function createProject(
     return { errors: result.error.flatten().fieldErrors, formError: null };
   }
 
-  const { error } = await supabase.from("projects").insert(result.data);
+  const image = validateProjectImage(formData.get("thumbnail_image"));
+  if (image.error) return { errors: { thumbnail_image: [image.error] }, formError: null };
+
+  const upload = image.file
+    ? await uploadProjectImage(supabase, image.file, image.extension)
+    : { path: null, publicUrl: null, error: null };
+  if (upload.error || (image.file && !upload.publicUrl)) {
+    console.error("Failed to upload project thumbnail", { message: upload.error?.message, userId: user.id });
+    return { errors: { thumbnail_image: ["The image couldn't be uploaded. Please try again."] }, formError: null };
+  }
+
+  const { error } = await supabase.from("projects").insert({ ...result.data, thumbnail_url: upload.publicUrl });
   if (error) {
+    if (upload.publicUrl) {
+      const cleanup = await deleteManagedProjectImage(supabase, upload.publicUrl);
+      if (cleanup.error) console.error("Failed to clean up thumbnail after project insert failure", { message: cleanup.error.message, userId: user.id });
+    }
     console.error("Failed to create admin project", {
       code: error.code,
       message: error.message,
