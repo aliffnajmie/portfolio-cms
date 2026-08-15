@@ -1,0 +1,2 @@
+import Link from "next/link";
+export function SiteFooter() { return <footer className="border-t border-white/10"><div className="mx-auto flex max-w-6xl flex-col gap-5 px-6 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between lg:px-8"><p>© 2026 Aliff Najmie. Built with care.</p><div className="flex gap-6"><Link className="hover:text-white" href="/projects">Projects</Link><a className="hover:text-white" href="mailto:hello@aliffnajmie.dev">Email</a></div></div></footer>; }

@@ -1,58 +1,23 @@
-import { DeployButton } from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
-import { Hero } from "@/components/hero";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { ConnectSupabaseSteps } from "@/components/tutorial/connect-supabase-steps";
-import { SignUpUserSteps } from "@/components/tutorial/sign-up-user-steps";
-import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
-import { Suspense } from "react";
+import { ArrowRight, Github, Linkedin, Mail } from "lucide-react";
+import { ProjectCard } from "@/components/portfolio/project-card";
+import { SiteFooter } from "@/components/portfolio/site-footer";
+import { SiteHeader } from "@/components/portfolio/site-header";
+import { projects } from "@/data/projects";
+
+const skillGroups = [
+  { title: "Frontend", skills: ["TypeScript", "React", "Next.js", "Tailwind CSS"] },
+  { title: "Backend", skills: ["Node.js", "PostgreSQL", "REST APIs", "Supabase"] },
+  { title: "Workflow", skills: ["Git", "Docker", "Testing", "CI/CD"] },
+];
 
 export default function Home() {
-  return (
-    <main className="min-h-screen flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>Next.js Supabase Starter</Link>
-              <div className="flex items-center gap-2">
-                <DeployButton />
-              </div>
-            </div>
-            {!hasEnvVars ? (
-              <EnvVarWarning />
-            ) : (
-              <Suspense>
-                <AuthButton />
-              </Suspense>
-            )}
-          </div>
-        </nav>
-        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
-          <Hero />
-          <main className="flex-1 flex flex-col gap-6 px-4">
-            <h2 className="font-medium text-xl mb-4">Next steps</h2>
-            {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-          </main>
-        </div>
-
-        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-          <p>
-            Powered by{" "}
-            <a
-              href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-              target="_blank"
-              className="font-bold hover:underline"
-              rel="noreferrer"
-            >
-              Supabase
-            </a>
-          </p>
-          <ThemeSwitcher />
-        </footer>
-      </div>
-    </main>
-  );
+  const featuredProjects = projects.filter((project) => project.featured);
+  return <div className="min-h-screen bg-background text-foreground"><SiteHeader/><main>
+    <section className="relative overflow-hidden border-b border-white/10"><div className="hero-grid absolute inset-0 opacity-40" aria-hidden="true"/><div className="relative mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-6xl flex-col justify-center px-6 py-24 lg:px-8"><div className="mb-8 flex items-center gap-3 text-sm text-cyan-300"><span className="h-px w-8 bg-cyan-400"/>Available for thoughtful product work</div><h1 className="max-w-5xl text-5xl font-semibold tracking-[-0.05em] text-white sm:text-7xl lg:text-[6.5rem] lg:leading-[0.95]">I build clear, reliable digital products.</h1><div className="mt-10 grid gap-8 md:grid-cols-2 md:items-end"><p className="max-w-xl text-lg leading-8 text-slate-400 sm:text-xl">I&apos;m Aliff Najmie, a software developer focused on turning complex ideas into fast, accessible, and maintainable web experiences.</p><div className="flex flex-wrap gap-3 md:justify-end"><Link className="button-primary" href="/projects">Explore my work <ArrowRight size={17}/></Link><a className="button-secondary" href="mailto:hello@aliffnajmie.dev">Let&apos;s talk</a></div></div></div></section>
+    <section id="projects" className="section-shell"><div className="section-heading"><div><p className="eyebrow">Selected work</p><h2>Products built with purpose.</h2></div><Link className="text-link" href="/projects">View all projects <ArrowRight size={16}/></Link></div><div className="grid gap-6 lg:grid-cols-2">{featuredProjects.map((project) => <ProjectCard key={project.slug} project={project}/>)}</div></section>
+    <section id="skills" className="border-y border-white/10 bg-slate-950/60"><div className="section-shell"><div className="section-heading"><div><p className="eyebrow">Technical skills</p><h2>A practical, modern toolkit.</h2></div></div><div className="grid border-t border-white/10 md:grid-cols-3">{skillGroups.map((group, index) => <div key={group.title} className={`py-8 md:px-8 ${index ? "border-t border-white/10 md:border-l md:border-t-0" : "md:pl-0"}`}><p className="mb-5 font-mono text-xs uppercase tracking-[0.2em] text-cyan-300">0{index + 1} / {group.title}</p><ul className="space-y-3 text-xl text-slate-200">{group.skills.map((skill) => <li key={skill}>{skill}</li>)}</ul></div>)}</div></div></section>
+    <section id="experience" className="section-shell"><div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr]"><div><p className="eyebrow">Experience</p><h2>Building at the intersection of design and engineering.</h2></div><div className="border-t border-white/10"><div className="grid gap-3 border-b border-white/10 py-8 sm:grid-cols-[1fr_auto]"><div><h3 className="text-xl font-medium text-white">Software Developer</h3><p className="mt-2 max-w-xl leading-7 text-slate-400">Developing polished web applications, reusable systems, and dependable integrations for teams and growing products.</p></div><p className="font-mono text-sm text-slate-500">2023 — Present</p></div><div className="grid gap-3 border-b border-white/10 py-8 sm:grid-cols-[1fr_auto]"><div><h3 className="text-xl font-medium text-white">Independent Projects</h3><p className="mt-2 max-w-xl leading-7 text-slate-400">Exploring product ideas end to end—from interface and architecture to deployment and iteration.</p></div><p className="font-mono text-sm text-slate-500">Ongoing</p></div></div></div></section>
+    <section id="contact" className="px-6 pb-6 lg:px-8 lg:pb-8"><div className="mx-auto max-w-6xl border border-cyan-400/20 bg-cyan-400/[0.04] px-6 py-16 sm:px-12 lg:flex lg:items-end lg:justify-between lg:py-20"><div><p className="eyebrow">Start a conversation</p><h2 className="max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-6xl">Have a useful idea? Let&apos;s build it well.</h2></div><div className="mt-10 flex gap-3 lg:mt-0"><a className="icon-link" href="mailto:hello@aliffnajmie.dev" aria-label="Email Aliff"><Mail size={20}/></a><a className="icon-link" href="https://github.com/" target="_blank" rel="noreferrer" aria-label="GitHub"><Github size={20}/></a><a className="icon-link" href="https://linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn"><Linkedin size={20}/></a></div></div></section>
+  </main><SiteFooter/></div>;
 }
