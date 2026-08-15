@@ -27,6 +27,17 @@ export async function updateProject(
     return { errors: projectResult.error.flatten().fieldErrors, formError: null };
   }
 
+  const { data: existingProject, error: existingProjectError } = await supabase.from("projects").select("slug").eq("id", idResult.data).maybeSingle();
+  if (existingProjectError || !existingProject) {
+    console.error("Failed to load project before update", {
+      code: existingProjectError?.code ?? "NO_MATCHING_ROW",
+      message: existingProjectError?.message ?? "No project was returned before update",
+      projectId: idResult.data,
+      userId: user.id,
+    });
+    return { errors: {}, formError: "The project couldn't be updated. Please try again." };
+  }
+
   const updatePayload = {
     title: projectResult.data.title,
     slug: projectResult.data.slug,
@@ -76,6 +87,10 @@ export async function updateProject(
 
   revalidatePath("/admin/projects", "layout");
   revalidatePath(`/admin/projects/${idResult.data}/edit`);
+  revalidatePath("/");
+  revalidatePath("/projects");
+  revalidatePath(`/projects/${existingProject.slug}`);
+  revalidatePath(`/projects/${projectResult.data.slug}`);
   redirect("/admin/projects");
 }
 
@@ -90,7 +105,7 @@ export async function deleteProject(
   const idResult = projectIdSchema.safeParse(projectId);
   if (!idResult.success) return { error: "This project could not be deleted." };
 
-  const { data, error } = await supabase.from("projects").delete().eq("id", idResult.data).select("id").maybeSingle();
+  const { data, error } = await supabase.from("projects").delete().eq("id", idResult.data).select("id, slug").maybeSingle();
   if (error || !data) {
     console.error("Failed to delete admin project", {
       code: error?.code ?? "NO_MATCHING_ROW",
@@ -103,5 +118,8 @@ export async function deleteProject(
 
   revalidatePath("/admin/projects", "layout");
   revalidatePath(`/admin/projects/${idResult.data}/edit`);
+  revalidatePath("/");
+  revalidatePath("/projects");
+  revalidatePath(`/projects/${data.slug}`);
   redirect("/admin/projects");
 }

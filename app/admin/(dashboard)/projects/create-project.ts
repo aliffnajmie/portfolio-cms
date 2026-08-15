@@ -36,5 +36,8 @@ export async function createProject(
   }
 
   revalidatePath("/admin/projects", "layout");
+  revalidatePath("/");
+  revalidatePath("/projects");
+  revalidatePath(`/projects/${result.data.slug}`);
   redirect("/admin/projects");
 }
