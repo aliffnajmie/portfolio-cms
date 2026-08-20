@@ -1,0 +1,9 @@
+export const CONTACT_STATUSES = ["new", "read", "replied", "archived"] as const;
+export type ContactStatus = (typeof CONTACT_STATUSES)[number];
+export type ContactMessage = { id: string; name: string; email: string; subject: string | null; message: string; status: ContactStatus; admin_notes: string | null; created_at: string; updated_at: string };
+export type ContactFormValues = { name: string; email: string; subject: string; message: string };
+export type ContactFormState = { status: "idle" | "success" | "error"; errors: Partial<Record<keyof ContactFormValues, string[]>>; formError: string | null; values: ContactFormValues };
+export const emptyContactValues: ContactFormValues = { name: "", email: "", subject: "", message: "" };
+export const initialContactFormState: ContactFormState = { status: "idle", errors: {}, formError: null, values: emptyContactValues };
+export type MessageActionState = { error: string | null };
+export const initialMessageActionState: MessageActionState = { error: null };
