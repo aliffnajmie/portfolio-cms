@@ -1,0 +1,2 @@
+import { cn } from "@/lib/utils";
+export function Alert({ className, variant = "default", ...props }: React.HTMLAttributes<HTMLDivElement> & { variant?: "default" | "destructive" }) { return <div role="alert" className={cn("rounded-md border p-4 text-sm", variant === "destructive" ? "border-destructive/30 bg-destructive/10 text-red-200" : "border-border bg-muted/40 text-muted-foreground", className)} {...props}/>; }

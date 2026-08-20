@@ -1,15 +1,7 @@
 "use client";
-
-import { useActionState } from "react";
-import { LoaderCircle, Trash2 } from "lucide-react";
+import { useActionState, useRef } from "react";
+import { LoaderCircle, Trash2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { initialDeleteProjectState, type DeleteProjectState } from "@/types/project-form";
-
 type DeleteAction = (state: DeleteProjectState, formData: FormData) => Promise<DeleteProjectState>;
-
-export function DeleteProjectButton({ action, title }: { action: DeleteAction; title: string }) {
-  const [state, formAction, pending] = useActionState(action, initialDeleteProjectState);
-
-  return <div><form action={formAction} onSubmit={(event) => {
-    if (!window.confirm(`Delete “${title}”? This action cannot be undone.`)) event.preventDefault();
-  }}><button type="submit" disabled={pending} className="inline-flex h-11 items-center justify-center gap-2 border border-red-400/25 px-4 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.06] disabled:cursor-not-allowed disabled:opacity-60">{pending ? <><LoaderCircle className="animate-spin" size={16}/>Deleting...</> : <><Trash2 size={16}/>Delete project</>}</button></form>{state?.error && <p role="alert" className="mt-3 text-sm text-red-300">{state.error}</p>}</div>;
-}
+export function DeleteProjectButton({ action, title }: { action: DeleteAction; title: string }) { const [state, formAction, pending] = useActionState(action, initialDeleteProjectState); const dialogRef = useRef<HTMLDialogElement>(null); return <div><Button type="button" variant="destructive" onClick={() => dialogRef.current?.showModal()}><Trash2/>Delete project</Button><dialog ref={dialogRef} className="w-[calc(100%-2rem)] max-w-md rounded-lg border border-border bg-card p-0 text-card-foreground shadow-2xl backdrop:bg-black/70"><div className="flex items-start justify-between border-b border-border p-5"><div><p className="text-lg font-semibold">Delete project?</p><p className="mt-2 text-sm leading-6 text-muted-foreground">“{title}” will be permanently removed from the CMS and public portfolio.</p></div><Button type="button" variant="ghost" size="icon" onClick={() => dialogRef.current?.close()} aria-label="Close dialog"><X/></Button></div><form action={formAction} className="flex flex-col-reverse gap-3 p-5 sm:flex-row sm:justify-end"><Button type="button" variant="outline" onClick={() => dialogRef.current?.close()}>Cancel</Button><Button type="submit" variant="destructive" disabled={pending}>{pending ? <><LoaderCircle className="animate-spin"/>Deleting...</> : <><Trash2/>Delete permanently</>}</Button></form></dialog>{state?.error && <p role="alert" className="mt-3 text-sm text-red-300">{state.error}</p>}</div>; }

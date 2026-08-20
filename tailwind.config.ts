@@ -58,6 +58,10 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        sans: ["Arial", "Helvetica", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["SFMono-Regular", "Consolas", "Liberation Mono", "monospace"],
+      },
     },
   },
   plugins: [tailwindcssAnimate],

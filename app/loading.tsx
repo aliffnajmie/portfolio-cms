@@ -1,0 +1,2 @@
+import { Skeleton } from "@/components/ui/skeleton";
+export default function Loading() { return <main className="section-shell" aria-label="Loading page"><Skeleton className="h-4 w-28"/><Skeleton className="mt-6 h-14 max-w-2xl"/><Skeleton className="mt-5 h-5 max-w-xl"/><div className="mt-14 grid gap-6 lg:grid-cols-2"><Skeleton className="aspect-[16/11]"/><Skeleton className="aspect-[16/11]"/></div></main>; }
