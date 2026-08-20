@@ -1,0 +1,15 @@
+"use client";
+import Link from "next/link";
+import { useActionState } from "react";
+import { LoaderCircle } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ContentFormField } from "./content-form-field";
+import { initialContentFormState, SKILL_CATEGORIES, type ContentFormState, type Skill } from "@/types/content";
+
+type Action = (state: ContentFormState, data: FormData) => Promise<ContentFormState>;
+export function SkillForm({ action, skill }: { action: Action; skill?: Skill }) { const [state, formAction, pending] = useActionState(action, initialContentFormState); const errors = state.errors; return <form action={formAction} className="space-y-6" noValidate>{state.formError && <Alert variant="destructive">{state.formError}</Alert>}<Card><CardHeader><CardTitle>Skill details</CardTitle></CardHeader><CardContent className="grid gap-6 sm:grid-cols-2"><ContentFormField name="name" label="Name" required error={errors.name}><Input id="name" name="name" defaultValue={skill?.name} required maxLength={100} disabled={pending}/></ContentFormField><ContentFormField name="category" label="Category" required error={errors.category}><select id="category" name="category" defaultValue={skill?.category ?? SKILL_CATEGORIES[0]} className="h-11 w-full rounded-md border border-input bg-background/45 px-3.5 text-sm" disabled={pending}>{SKILL_CATEGORIES.map((category) => <option key={category}>{category}</option>)}</select></ContentFormField><ContentFormField name="proficiency" label="Proficiency" hint="Optional, 1–100. Leave blank when you cannot substantiate a value." error={errors.proficiency}><Input id="proficiency" name="proficiency" type="number" min={1} max={100} defaultValue={skill?.proficiency ?? ""} disabled={pending}/></ContentFormField><ContentFormField name="icon" label="Icon name" hint="Optional semantic icon identifier." error={errors.icon}><Input id="icon" name="icon" defaultValue={skill?.icon ?? ""} maxLength={80} disabled={pending}/></ContentFormField><ContentFormField name="display_order" label="Display order" hint="Lower numbers appear first." error={errors.display_order}><Input id="display_order" name="display_order" type="number" step="1" defaultValue={skill?.display_order ?? 0} required disabled={pending}/></ContentFormField><div className="flex items-center gap-3 pt-7"><Checkbox id="is_visible" name="is_visible" defaultChecked={skill?.is_visible ?? true} disabled={pending}/><Label htmlFor="is_visible">Visible on portfolio</Label></div></CardContent></Card><div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><Button variant="outline" asChild><Link href="/admin/skills">Cancel</Link></Button><Button type="submit" disabled={pending}>{pending && <LoaderCircle className="animate-spin"/>}{skill ? "Save changes" : "Create skill"}</Button></div></form>; }
