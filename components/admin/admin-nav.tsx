@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BriefcaseBusiness, FolderKanban, LayoutDashboard, Sparkles } from "lucide-react";
+import { BriefcaseBusiness, FolderKanban, LayoutDashboard, Sparkles, UserRound } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 const navigation = [
@@ -9,6 +9,7 @@ const navigation = [
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },
   { href: "/admin/skills", label: "Skills", icon: Sparkles },
   { href: "/admin/experience", label: "Experience", icon: BriefcaseBusiness },
+  { href: "/admin/profile", label: "Profile", icon: UserRound },
 ];
 
 export function AdminNav() {
